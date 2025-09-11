@@ -1,0 +1,17 @@
+{
+  "name": "nether-host",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "clean": "turbo clean"
+  },
+  "dependencies": {
+    "turbo": "^2.5.6"
+  },
+  "packageManager": "pnpm@10.15.1"
+}

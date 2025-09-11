@@ -1,0 +1,7 @@
+.turbo
+build/
+dist/
+bin/
+node_modules/
+
+*.env

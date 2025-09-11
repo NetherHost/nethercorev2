@@ -1,0 +1,33 @@
+{
+  "name": "@nethercore/logger",
+  "version": "1.0.0",
+  "description": "Simple console logger with color styling and Nether Host branding",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "logger",
+    "console",
+    "nether",
+    "chalk",
+    "styling"
+  ],
+  "author": "Nether Host",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}
