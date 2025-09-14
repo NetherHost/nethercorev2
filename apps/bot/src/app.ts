@@ -29,3 +29,4 @@ const client = new Client({
 // client.token = process.env.DISCORD_TOKEN!;
 
 export default client;
+export { logger };
