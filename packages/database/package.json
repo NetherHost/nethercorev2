@@ -1,0 +1,33 @@
+{
+  "name": "@nethercore/database",
+  "version": "1.0.0",
+  "description": "Optimized MongoDB database wrapper using Mongoose with Nether Host integration",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "database",
+    "mongodb",
+    "mongoose",
+    "nether",
+    "orm"
+  ],
+  "author": "Nether Host",
+  "license": "MIT",
+  "dependencies": {
+    "@nethercore/logger": "workspace:*",
+    "mongoose": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}

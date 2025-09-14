@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//e/projects/active/NetherCore v2/packages/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
