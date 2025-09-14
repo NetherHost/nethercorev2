@@ -1,0 +1,35 @@
+{
+  "name": "@nethercore/bot",
+  "version": "1.0.0",
+  "description": "Advanced Discord bot for Nether Host",
+  "type": "module",
+  "scripts": {
+    "build": "commandkit build",
+    "dev": "commandkit dev",
+    "start": "commandkit start",
+    "watch": "commandkit build --watch",
+    "types": "tsc --noEmit"
+  },
+  "keywords": [
+    "bot",
+    "nether",
+    "discord",
+    "nethercore",
+    "netherhost"
+  ],
+  "author": "Nether Host",
+  "license": "MIT",
+  "dependencies": {
+    "@nethercore/database": "workspace:*",
+    "@nethercore/logger": "workspace:*",
+    "axios": "^1.12.2",
+    "commandkit": "1.2.0-rc.9",
+    "discord.js": "^14.22.1",
+    "dotenv": "^17.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}

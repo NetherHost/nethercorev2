@@ -1,4 +1,6 @@
-.turbo
+.turbo/
+.claude/
+.commandkit/
 build/
 dist/
 bin/

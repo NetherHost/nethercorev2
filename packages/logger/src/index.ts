@@ -14,6 +14,7 @@ export interface LoggerOptions {
   showLevel?: boolean;
   brand?: boolean;
   prefix?: string;
+  forceColor?: boolean;
 }
 
 export class NetherLogger {
@@ -36,8 +37,15 @@ export class NetherLogger {
       showLevel: true,
       brand: true,
       prefix: "",
+      forceColor: false,
       ...options,
     };
+
+    if (this.options.forceColor) {
+      process.env.FORCE_COLOR = "1";
+      process.env.COLORTERM = "truecolor";
+      (chalk as any).level = 3;
+    }
   }
 
   private formatTimestamp(): string {
@@ -179,4 +187,10 @@ export const replaceConsole = (options: LoggerOptions = {}) => {
   };
 
   return netherLogger;
+};
+
+export const forceColors = () => {
+  process.env.FORCE_COLOR = "1";
+  process.env.COLORTERM = "truecolor";
+  (chalk as any).level = 3; // force colors because commandkit disables them
 };
