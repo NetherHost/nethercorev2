@@ -4,7 +4,7 @@ import { createLogger, LogLevel } from "@nethercore/logger";
 
 const port: number = parseInt(process.env.PORT || "3001");
 
-const logger = createLogger({
+export const logger = createLogger({
   prefix: "API",
   brand: true,
   level: LogLevel.INFO,
