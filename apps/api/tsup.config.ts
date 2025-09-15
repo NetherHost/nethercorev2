@@ -10,5 +10,7 @@ export default defineConfig({
   sourcemap: true,
   minify: true,
 
-  external: ["boxen"],
+  external: ["express", "mongoose", "zod", "dotenv", "axios"],
+
+  onSuccess: "node dist/index.js",
 });
