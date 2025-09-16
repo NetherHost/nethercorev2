@@ -1,5 +1,5 @@
-import mongoose, { ConnectOptions } from 'mongoose';
-import { createLogger } from '@nethercore/logger';
+import mongoose, { ConnectOptions } from "mongoose";
+import { createLogger } from "@nethercore/logger";
 
 export interface DatabaseOptions extends ConnectOptions {
   maxPoolSize?: number;
@@ -9,7 +9,7 @@ export interface DatabaseOptions extends ConnectOptions {
 }
 
 export class Database {
-  private logger = createLogger({ prefix: 'DATABASE', brand: true });
+  private logger = createLogger({ prefix: "DATABASE", brand: true });
   private uri: string;
   private options: DatabaseOptions;
 
@@ -20,17 +20,17 @@ export class Database {
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
       connectTimeoutMS: 10000,
-      ...options
+      ...options,
     };
   }
 
   private maskUri(uri: string): string {
-    return uri.replace(/:\/\/([^:]+):([^@]+)@/, '://***:***@');
+    return uri.replace(/:\/\/([^:]+):([^@]+)@/, "://***:***@");
   }
 
   async connect(): Promise<void> {
     if (mongoose.connection.readyState === 1) {
-      this.logger.warn('Database already connected');
+      this.logger.warn("Database already connected");
       return;
     }
 
@@ -41,7 +41,11 @@ export class Database {
 
       this.logger.success(`Connected to MongoDB: ${this.maskUri(this.uri)}`);
     } catch (error) {
-      this.logger.error(`Failed to connect to MongoDB: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to connect to MongoDB: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
       throw error;
     }
   }
@@ -50,10 +54,14 @@ export class Database {
     try {
       if (mongoose.connection.readyState === 1) {
         await mongoose.disconnect();
-        this.logger.info('Disconnected from MongoDB');
+        this.logger.info("Disconnected from MongoDB");
       }
     } catch (error) {
-      this.logger.error(`Error during disconnect: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Error during disconnect: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
       throw error;
     }
   }
@@ -64,14 +72,20 @@ export class Database {
 
   getConnectionState(): string {
     switch (mongoose.connection.readyState) {
-      case 0: return 'disconnected';
-      case 1: return 'connected';
-      case 2: return 'connecting';
-      case 3: return 'disconnecting';
-      default: return 'unknown';
+      case 0:
+        return "disconnected";
+      case 1:
+        return "connected";
+      case 2:
+        return "connecting";
+      case 3:
+        return "disconnecting";
+      default:
+        return "unknown";
     }
   }
 }
 
 export default Database;
 export { mongoose };
+export * from "./models";
