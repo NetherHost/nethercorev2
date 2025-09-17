@@ -5,6 +5,7 @@ build/
 dist/
 bin/
 node_modules/
+ins/
 
 *.env
 *.env.*
