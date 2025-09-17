@@ -21,7 +21,11 @@ export interface DatabaseOptions {
 }
 
 export class Database {
-  private logger = createLogger({ prefix: "DATABASE", brand: true });
+  private logger = createLogger({
+    prefix: "DATABASE",
+    brand: true,
+    forceColor: true,
+  });
   private supabaseUrl: string;
   private supabaseKey: string;
   private options: DatabaseOptions;

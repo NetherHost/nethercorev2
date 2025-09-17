@@ -29,11 +29,13 @@ const app: Application = express();
 
 app.use(allowedAccess);
 app.use(express.json());
-app.use("/", (req, res) => {
-  res.status(200).json({
+app.use("/api/v1", apiRoutes);
+app.use((req, res) => {
+  res.status(404).json({
+    status: 404,
+    error: "Not Found",
     message: "All routes are prefixed with /api/v1. Did you forget to add it?",
   });
 });
-app.use("/api/v1", apiRoutes);
 
 export default app;
