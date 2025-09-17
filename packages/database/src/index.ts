@@ -1,48 +1,78 @@
-import mongoose, { ConnectOptions } from "mongoose";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { createLogger } from "@nethercore/logger";
 
-export interface DatabaseOptions extends ConnectOptions {
-  maxPoolSize?: number;
-  serverSelectionTimeoutMS?: number;
-  socketTimeoutMS?: number;
-  connectTimeoutMS?: number;
+export interface DatabaseOptions {
+  auth?: {
+    autoRefreshToken?: boolean;
+    persistSession?: boolean;
+    detectSessionInUrl?: boolean;
+  };
+  global?: {
+    headers?: Record<string, string>;
+  };
+  db?: {
+    schema?: "public";
+  };
+  realtime?: {
+    params?: {
+      eventsPerSecond?: number;
+    };
+  };
 }
 
 export class Database {
   private logger = createLogger({ prefix: "DATABASE", brand: true });
-  private uri: string;
+  private supabaseUrl: string;
+  private supabaseKey: string;
   private options: DatabaseOptions;
+  private client: SupabaseClient<any, "public", "public"> | null = null;
+  private isConnectedFlag: boolean = false;
 
-  constructor(uri: string, options: DatabaseOptions = {}) {
-    this.uri = uri;
+  constructor(
+    supabaseUrl: string,
+    supabaseKey: string,
+    options: DatabaseOptions = {}
+  ) {
+    this.supabaseUrl = supabaseUrl;
+    this.supabaseKey = supabaseKey;
     this.options = {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 10000,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
+      auth: {
+        autoRefreshToken: true,
+        persistSession: false,
+        detectSessionInUrl: false,
+        ...options.auth,
+      },
+      global: {
+        headers: {
+          "X-Client-Info": "nethercore-database",
+          ...options.global?.headers,
+        },
+        ...options.global,
+      },
       ...options,
     };
   }
 
-  private maskUri(uri: string): string {
-    return uri.replace(/:\/\/([^:]+):([^@]+)@/, "://***:***@");
-  }
-
   async connect(): Promise<void> {
-    if (mongoose.connection.readyState === 1) {
+    if (this.isConnectedFlag && this.client) {
       this.logger.warn("Database already connected");
       return;
     }
 
     try {
-      this.logger.info(`Connecting to MongoDB: ${this.maskUri(this.uri)}`);
+      this.logger.info(`Connecting to Supabase: ${this.supabaseUrl}`);
 
-      await mongoose.connect(this.uri, this.options);
+      this.client = createClient<any, "public", "public">(
+        this.supabaseUrl,
+        this.supabaseKey,
+        this.options
+      );
 
-      this.logger.success(`Connected to MongoDB: ${this.maskUri(this.uri)}`);
+      this.isConnectedFlag = true;
+      this.logger.success(`Connected to Supabase: ${this.supabaseUrl}`);
     } catch (error) {
       this.logger.error(
-        `Failed to connect to MongoDB: ${
+        `Failed to connect to Supabase: ${
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
@@ -52,9 +82,10 @@ export class Database {
 
   async disconnect(): Promise<void> {
     try {
-      if (mongoose.connection.readyState === 1) {
-        await mongoose.disconnect();
-        this.logger.info("Disconnected from MongoDB");
+      if (this.client) {
+        this.client = null;
+        this.isConnectedFlag = false;
+        this.logger.info("Disconnected from Supabase");
       }
     } catch (error) {
       this.logger.error(
@@ -67,25 +98,25 @@ export class Database {
   }
 
   isConnected(): boolean {
-    return mongoose.connection.readyState === 1;
+    return this.isConnectedFlag && this.client !== null;
   }
 
   getConnectionState(): string {
-    switch (mongoose.connection.readyState) {
-      case 0:
-        return "disconnected";
-      case 1:
-        return "connected";
-      case 2:
-        return "connecting";
-      case 3:
-        return "disconnecting";
-      default:
-        return "unknown";
+    if (this.isConnected()) {
+      return "connected";
+    } else if (this.client === null) {
+      return "disconnected";
+    } else {
+      return "connecting";
     }
+  }
+
+  getClient(): SupabaseClient<any, "public", "public"> {
+    if (!this.client) {
+      throw new Error("Database not connected. Call connect() first.");
+    }
+    return this.client;
   }
 }
 
 export default Database;
-export { mongoose };
-export * from "./models";

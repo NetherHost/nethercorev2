@@ -1,3 +1,3 @@
 # @nethercore/database
 
-Simple MongoDB connection wrapper using Mongoose and includes the `@nethercore/logger` package.
+Supabase database client wrapper with Nether Host integration.

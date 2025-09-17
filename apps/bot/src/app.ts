@@ -3,7 +3,10 @@ import { Client, GatewayIntentBits, Partials } from "discord.js";
 import { Database } from "@nethercore/database";
 import { createLogger, LogLevel } from "@nethercore/logger";
 
-const db = new Database(process.env.MONGODB_URI!);
+const db = new Database(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 const logger = createLogger({
   prefix: "BOT",
   brand: true,
