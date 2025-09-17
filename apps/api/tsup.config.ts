@@ -11,6 +11,4 @@ export default defineConfig({
   minify: true,
 
   external: ["express", "zod", "dotenv", "axios"],
-
-  onSuccess: "node dist/index.js",
 });
