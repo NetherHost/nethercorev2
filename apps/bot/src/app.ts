@@ -1,7 +1,11 @@
-import "dotenv/config";
+import dotenv from "dotenv";
 import { Client, GatewayIntentBits, Partials } from "discord.js";
 import { Database } from "@nethercore/database";
 import { createLogger, LogLevel } from "@nethercore/logger";
+
+const envPath =
+  process.env.NODE_ENV === "production" ? ".env.prod" : ".env.local";
+dotenv.config({ path: envPath });
 
 const db = new Database(
   process.env.SUPABASE_URL!,
@@ -30,6 +34,8 @@ const client = new Client({
 });
 
 // client.token = process.env.DISCORD_TOKEN!;
+
+logger.info(`Environment: ${process.env.NODE_ENV}`);
 
 export default client;
 export { logger };

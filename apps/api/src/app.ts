@@ -1,8 +1,12 @@
-import "dotenv/config";
+import dotenv from "dotenv";
 import express, { Application } from "express";
 import apiRoutes from "./api/v1/routes";
 import { Database } from "@nethercore/database";
 import { allowedAccess } from "./middleware/allowedAccess";
+
+const envPath =
+  process.env.NODE_ENV === "production" ? ".env.prod" : ".env.local";
+dotenv.config({ path: envPath });
 
 const db = new Database(
   process.env.SUPABASE_URL!,
