@@ -10,10 +10,17 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "clean": "turbo clean",
+    "test": "turbo test",
+    "test:watch": "turbo test --watch",
+    "lint": "turbo lint",
+    "types": "turbo types",
     "migrate:to-supabase": "ts-node scripts/migrate-to-supabase.ts"
   },
   "dependencies": {
     "turbo": "^2.5.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
   },
   "packageManager": "pnpm@10.16.1"
 }

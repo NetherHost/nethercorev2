@@ -4,11 +4,14 @@
   "description": "Advanced Discord bot for Nether Host",
   "type": "module",
   "scripts": {
+    "test": "echo \"No tests configured yet\" && exit 0",
+    "test:watch": "echo \"No tests configured yet\" && exit 0",
     "build": "commandkit build",
     "dev": "commandkit dev",
     "start": "commandkit start",
     "watch": "commandkit build --watch",
-    "types": "tsc --noEmit"
+    "types": "tsc --noEmit",
+    "lint": "echo \"No linting configured yet\" && exit 0"
   },
   "keywords": [
     "bot",

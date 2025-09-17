@@ -12,10 +12,13 @@
     }
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"No tests configured yet\" && exit 0",
+    "test:watch": "echo \"No tests configured yet\" && exit 0",
     "build": "tsup",
     "dev": "tsup --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "lint": "echo \"No linting configured yet\" && exit 0",
+    "types": "tsc --noEmit"
   },
   "keywords": [
     "api",
