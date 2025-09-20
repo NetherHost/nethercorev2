@@ -33,6 +33,7 @@
     "@nethercore/database": "workspace:*",
     "@nethercore/logger": "workspace:*",
     "@types/express-session": "^1.18.2",
+    "@types/passport": "^1.0.17",
     "axios": "^1.12.2",
     "connect-redis": "^9.0.0",
     "discord-strategy": "^2.2.0",

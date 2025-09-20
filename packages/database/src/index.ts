@@ -124,3 +124,6 @@ export class Database {
 }
 
 export default Database;
+
+// Export types
+export * from "./types/user";
