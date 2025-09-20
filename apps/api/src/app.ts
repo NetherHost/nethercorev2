@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import express, { Application } from "express";
 import session from "express-session";
+import cors from "cors";
 import apiRoutes from "./api/v1/routes";
 import { Database } from "@nethercore/database";
 import { allowedAccess } from "./middleware/allowedAccess";
@@ -13,7 +14,7 @@ dotenv.config({ path: envPath });
 // new supabase instance
 const db = new Database(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 (async () => {
@@ -30,6 +31,20 @@ export const getDatabase = () => {
 
 const app: Application = express();
 
+// cors
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      process.env.FRONTEND_URL || "http://localhost:3000",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+  })
+);
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "your-session-secret-key",
@@ -39,11 +54,12 @@ app.use(
       secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
   })
 );
 
-app.use(allowedAccess);
+// app.use(allowedAccess);
 app.use(express.json());
 app.use("/api/v1", apiRoutes);
 app.use((req, res) => {

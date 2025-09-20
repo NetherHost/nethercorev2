@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Instrument_Sans, Sora, Fira_Code } from "next/font/google";
 import "./globals.css";
 import "../../public/fa/css/all.min.css";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
@@ -33,7 +34,7 @@ export default function RootLayout({
       <body
         className={`${instrumentSans.variable} ${sora.variable} ${firaCode.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

@@ -63,7 +63,7 @@ export const handleCallback = async (req: Request, res: Response) => {
 
       const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
       res.redirect(
-        `${frontendUrl}/dashboard?auth=success&user=${encodeURIComponent(
+        `${frontendUrl}/?auth=success&user=${encodeURIComponent(
           user.discord_username
         )}`
       );

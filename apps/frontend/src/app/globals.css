@@ -23,3 +23,21 @@ h6 {
   );
   background-size: 50px 50px;
 }
+
+.animate-spin-slow {
+  animation: spin 1.1s linear infinite;
+  will-change: transform;
+  transform-origin: center;
+}
+
+.animate-spin-medium {
+  animation: spin 0.5s linear infinite;
+  will-change: transform;
+  transform-origin: center;
+}
+
+.animate-spin-fast {
+  animation: spin 0.1s linear infinite;
+  will-change: transform;
+  transform-origin: center;
+}
