@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AuthService } from "./service";
 import { IUser } from "@nethercore/database";
-import "../../../types/session";
+import "../../../types/session.d";
 
 declare global {
   namespace Express {
