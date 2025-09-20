@@ -11,6 +11,7 @@ export const logger = createLogger({
   forceColor: true,
 });
 
+// start server
 app.listen(port, () => {
   logger.info(`Environment: ${process.env.NODE_ENV}`);
   logger.success(`Server running at http://localhost:${port}`).box();

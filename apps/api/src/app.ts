@@ -4,10 +4,12 @@ import apiRoutes from "./api/v1/routes";
 import { Database } from "@nethercore/database";
 import { allowedAccess } from "./middleware/allowedAccess";
 
+// get env variables based on environment
 const envPath =
   process.env.NODE_ENV === "production" ? ".env.prod" : ".env.local";
 dotenv.config({ path: envPath });
 
+// new supabase instance
 const db = new Database(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_ANON_KEY!
