@@ -1,75 +1,99 @@
 import { Request, Response } from "express";
-import passport from "passport";
-import axios from "axios";
-import { getDatabase } from "../../../app";
+import { AuthService } from "./service";
 import { IUser } from "@nethercore/database";
+import "../../../types/session";
 
 declare global {
   namespace Express {
-    interface User extends IUser {}
+    interface Request {
+      user?: IUser;
+    }
   }
 }
 
-const refreshDiscordToken = async (
-  refreshToken: string
-): Promise<{
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-} | null> => {
-  try {
-    const response = await axios.post(
-      "https://discord.com/api/oauth2/token",
-      new URLSearchParams({
-        client_id: process.env.DISCORD_CLIENT_ID!,
-        client_secret: process.env.DISCORD_CLIENT_SECRET!,
-        grant_type: "refresh_token",
-        refresh_token: refreshToken,
-      }),
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
+export const initiateAuth = (req: Request, res: Response) => {
+  const authUrl = AuthService.generateAuthUrl();
+  res.redirect(authUrl);
+};
 
-    return response.data;
+export const handleCallback = async (req: Request, res: Response) => {
+  try {
+    const { code } = req.query;
+
+    if (!code || typeof code !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Authorization code is required",
+      });
+    }
+
+    const tokens = await AuthService.exchangeCodeForTokens(code);
+    if (!tokens) {
+      return res.status(400).json({
+        success: false,
+        message: "Failed to exchange code for tokens",
+      });
+    }
+
+    const discordUser = await AuthService.getDiscordUser(tokens.access_token);
+    if (!discordUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Failed to fetch Discord user information",
+      });
+    }
+
+    const user = await AuthService.findOrCreateUser(discordUser, tokens);
+    if (!user) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create or update user",
+      });
+    }
+
+    req.session.userId = user.id;
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to save session",
+        });
+      }
+
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      res.redirect(
+        `${frontendUrl}/dashboard?auth=success&user=${encodeURIComponent(
+          user.discord_username
+        )}`
+      );
+    });
   } catch (error) {
-    console.error("Error refreshing Discord token:", error);
-    return null;
+    console.error("Callback error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
 
-export const discordAuthController = passport.authenticate("discord", {
-  scope: ["identify", "email", "guilds"],
-});
-
-export const discordCallbackController = [
-  passport.authenticate("discord", { failureRedirect: "/api/v1/auth/failure" }),
-  (req: Request, res: Response) => {
-    const user = req.user as IUser;
-
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-
-    // redirect to frontend with success indicator
-    res.redirect(
-      `${frontendUrl}/dashboard?auth=success&user=${encodeURIComponent(
-        user.discord_username
-      )}`
-    );
-  },
-];
-
-export const getCurrentUserController = async (req: Request, res: Response) => {
+export const getCurrentUser = async (req: Request, res: Response) => {
   try {
-    if (!req.isAuthenticated()) {
+    if (!req.session.userId) {
       return res.status(401).json({
         success: false,
         message: "Not authenticated",
       });
     }
 
-    const user = req.user as IUser;
+    const user = await AuthService.getUserById(req.session.userId);
+    if (!user) {
+      req.session.destroy(() => {});
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
     const safeUser = {
       id: user.id,
@@ -86,7 +110,7 @@ export const getCurrentUserController = async (req: Request, res: Response) => {
       user: safeUser,
     });
   } catch (error) {
-    console.error("Error getting current user:", error);
+    console.error("Get current user error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -94,69 +118,69 @@ export const getCurrentUserController = async (req: Request, res: Response) => {
   }
 };
 
-export const logoutController = (req: Request, res: Response) => {
-  req.logout((err) => {
-    if (err) {
-      console.error("Logout error:", err);
-      return res.status(500).json({
-        success: false,
-        message: "Error during logout",
-      });
-    }
+export const checkAuthStatus = (req: Request, res: Response) => {
+  const isAuthenticated = !!req.session.userId;
 
-    req.session.destroy((err) => {
-      if (err) {
-        console.error("Session destroy error:", err);
-        return res.status(500).json({
-          success: false,
-          message: "Error destroying session",
-        });
-      }
-
-      res.clearCookie("connect.sid");
-      res.json({
-        success: true,
-        message: "Logged out successfully",
-      });
-    });
-  });
-};
-
-export const checkAuthController = (req: Request, res: Response) => {
   res.json({
-    authenticated: req.isAuthenticated(),
-    user: req.isAuthenticated()
+    authenticated: isAuthenticated,
+    user: isAuthenticated
       ? {
-          id: (req.user as IUser).id,
-          discord_username: (req.user as IUser).discord_username,
-          role: (req.user as IUser).role,
+          id: req.user?.id,
+          discord_username: req.user?.discord_username,
+          role: req.user?.role,
         }
       : null,
   });
 };
 
-export const checkTokenStatusController = async (
-  req: Request,
-  res: Response
-) => {
+export const logout = (req: Request, res: Response) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Session destroy error:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to logout",
+      });
+    }
+
+    res.clearCookie("connect.sid");
+    res.json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  });
+};
+
+export const checkTokenStatus = async (req: Request, res: Response) => {
   try {
-    if (!req.isAuthenticated()) {
+    if (!req.session.userId) {
       return res.status(401).json({
         success: false,
         message: "Not authenticated",
       });
     }
 
-    const user = req.user as IUser;
+    const user = await AuthService.getUserById(req.session.userId);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const isExpired = AuthService.isTokenExpired(user.discord_token_expires_at);
+    const needsRefresh = AuthService.isTokenExpiringSoon(
+      user.discord_token_expires_at,
+      1
+    );
+    const needsSoonRefresh = AuthService.isTokenExpiringSoon(
+      user.discord_token_expires_at,
+      24
+    );
+
     const tokenExpiry = new Date(user.discord_token_expires_at);
     const now = new Date();
     const timeUntilExpiry = tokenExpiry.getTime() - now.getTime();
-    const oneDay = 24 * 60 * 60 * 1000;
-    const oneHour = 60 * 60 * 1000;
-
-    const isExpired = timeUntilExpiry <= 0;
-    const needsRefresh = timeUntilExpiry <= oneHour;
-    const needsSoonRefresh = timeUntilExpiry <= oneDay;
 
     res.json({
       success: true,
@@ -173,7 +197,7 @@ export const checkTokenStatusController = async (
       },
     });
   } catch (error) {
-    console.error("Error checking token status:", error);
+    console.error("Check token status error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -181,25 +205,24 @@ export const checkTokenStatusController = async (
   }
 };
 
-export const refreshTokensController = async (req: Request, res: Response) => {
+export const refreshTokens = async (req: Request, res: Response) => {
   try {
-    if (!req.isAuthenticated()) {
+    if (!req.session.userId) {
       return res.status(401).json({
         success: false,
         message: "Not authenticated",
       });
     }
 
-    const user = req.user as IUser;
-    const db = getDatabase();
-    const supabase = db.getClient();
+    const user = await AuthService.getUserById(req.session.userId);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
-    const tokenExpiry = new Date(user.discord_token_expires_at);
-    const now = new Date();
-    const timeUntilExpiry = tokenExpiry.getTime() - now.getTime();
-    const oneDay = 24 * 60 * 60 * 1000;
-
-    if (timeUntilExpiry > oneDay) {
+    if (!AuthService.isTokenExpiringSoon(user.discord_token_expires_at, 24)) {
       return res.json({
         success: true,
         message: "Token is still valid",
@@ -208,8 +231,9 @@ export const refreshTokensController = async (req: Request, res: Response) => {
       });
     }
 
-    const tokenData = await refreshDiscordToken(user.discord_refresh_token);
-
+    const tokenData = await AuthService.refreshTokens(
+      user.discord_refresh_token
+    );
     if (!tokenData) {
       return res.status(400).json({
         success: false,
@@ -218,49 +242,24 @@ export const refreshTokensController = async (req: Request, res: Response) => {
       });
     }
 
-    const newExpiresAt = new Date(
-      Date.now() + tokenData.expires_in * 1000
-    ).toISOString();
-
-    const { data: updatedUser, error: updateError } = await getDatabase()
-      .getClient()
-      .from("users")
-      .update({
-        discord_access_token: tokenData.access_token,
-        discord_refresh_token: tokenData.refresh_token,
-        discord_token_expires_at: newExpiresAt,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id)
-      .select()
-      .single();
-
-    if (updateError) {
-      console.error("Error updating user tokens:", updateError);
+    const updatedUser = await AuthService.updateUserTokens(user.id, tokenData);
+    if (!updatedUser) {
       return res.status(500).json({
         success: false,
         message: "Failed to update tokens in database",
       });
     }
 
-    req.login(updatedUser, (err) => {
-      if (err) {
-        console.error("Error updating session:", err);
-        return res.status(500).json({
-          success: false,
-          message: "Failed to update session",
-        });
-      }
+    req.user = updatedUser;
 
-      res.json({
-        success: true,
-        message: "Tokens refreshed successfully",
-        expires_at: newExpiresAt,
-        needs_refresh: false,
-      });
+    res.json({
+      success: true,
+      message: "Tokens refreshed successfully",
+      expires_at: updatedUser.discord_token_expires_at,
+      needs_refresh: false,
     });
   } catch (error) {
-    console.error("Error refreshing tokens:", error);
+    console.error("Refresh tokens error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",

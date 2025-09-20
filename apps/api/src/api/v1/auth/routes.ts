@@ -1,27 +1,25 @@
 import { Router } from "express";
 import {
-  discordAuthController,
-  discordCallbackController,
-  getCurrentUserController,
-  logoutController,
-  checkAuthController,
-  refreshTokensController,
-  checkTokenStatusController,
+  initiateAuth,
+  handleCallback,
+  getCurrentUser,
+  logout,
+  checkAuthStatus,
+  refreshTokens,
+  checkTokenStatus,
 } from "./discord";
 
 const router: Router = Router();
 
-// oauth routes for discord
-router.get("/discord", discordAuthController);
-router.get("/discord/callback", discordCallbackController);
+router.get("/discord", initiateAuth);
+router.get("/discord/callback", handleCallback);
 
-router.get("/me", getCurrentUserController);
-router.get("/status", checkAuthController);
-router.get("/token-status", checkTokenStatusController);
-router.post("/logout", logoutController);
-router.post("/refresh-tokens", refreshTokensController);
+router.get("/me", getCurrentUser);
+router.get("/status", checkAuthStatus);
+router.get("/token-status", checkTokenStatus);
+router.post("/logout", logout);
+router.post("/refresh-tokens", refreshTokens);
 
-// for failure
 router.get("/failure", (req, res) => {
   res.status(401).json({
     success: false,

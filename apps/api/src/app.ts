@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 import express, { Application } from "express";
 import session from "express-session";
-import passport from "./config/passport";
 import apiRoutes from "./api/v1/routes";
 import { Database } from "@nethercore/database";
 import { allowedAccess } from "./middleware/allowedAccess";
@@ -31,23 +30,18 @@ export const getDatabase = () => {
 
 const app: Application = express();
 
-// Session configuration
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "your-session-secret-key",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
     },
   })
 );
-
-// Initialize Passport
-app.use(passport.initialize());
-app.use(passport.session());
 
 app.use(allowedAccess);
 app.use(express.json());
