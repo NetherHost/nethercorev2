@@ -27,7 +27,7 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-neutral-950 bg-dots relative">
+      <main className="min-h-screen flex items-center justify-center bg-dots relative">
         <section className="bg-neutral-950/80 backdrop-blur-md rounded-xl px-8 py-10 max-w-sm w-full text-center border border-neutral-800 shadow-lg">
           <div className="mb-8 flex flex-col items-center">
             <h1 className="text-3xl font-semibold mb-5 text-white font-sora tracking-tight">
@@ -46,7 +46,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-neutral-950 bg-dots relative">
+    <main className="min-h-screen flex items-center justify-center bg-dots relative">
       <section className="bg-neutral-950/80 backdrop-blur-md rounded-xl px-8 py-10 max-w-sm w-full text-center border border-neutral-800">
         <div className="mb-8">
           <h1 className="text-3xl font-semibold mb-3 text-white font-sora tracking-tight">

@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${instrumentSans.variable} ${sora.variable} ${firaCode.variable} antialiased`}
+        className={`${instrumentSans.variable} ${sora.variable} ${firaCode.variable} antialiased min-h-screen bg-neutral-950`}
       >
         <AuthProvider>{children}</AuthProvider>
       </body>
