@@ -1,3 +1,3 @@
 # @nethercore/database
 
-Supabase database client wrapper with Nether Host integration.
+Mongoose database client wrapper with Nether Host integration.

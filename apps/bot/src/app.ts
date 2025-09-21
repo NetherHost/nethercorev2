@@ -7,10 +7,7 @@ const envPath =
   process.env.NODE_ENV === "production" ? ".env.prod" : ".env.local";
 dotenv.config({ path: envPath });
 
-const db = new Database(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+const db = new Database({ uri: process.env.MONGODB_URI! });
 const logger = createLogger({
   prefix: "BOT",
   brand: true,

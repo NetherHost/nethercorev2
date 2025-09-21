@@ -51,7 +51,7 @@ export const handleCallback = async (req: Request, res: Response) => {
       });
     }
 
-    req.session.userId = user.id;
+    req.session.userId = user._id;
     req.session.save((err) => {
       if (err) {
         console.error("Session save error:", err);
@@ -96,7 +96,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     }
 
     const safeUser = {
-      id: user.id,
+      id: user._id,
       discord_id: user.discord_id,
       discord_username: user.discord_username,
       discord_avatar: user.discord_avatar,
@@ -125,7 +125,7 @@ export const checkAuthStatus = (req: Request, res: Response) => {
     authenticated: isAuthenticated,
     user: isAuthenticated
       ? {
-          id: req.user?.id,
+          id: req.user?._id,
           discord_username: req.user?.discord_username,
           role: req.user?.role,
         }
@@ -242,7 +242,7 @@ export const refreshTokens = async (req: Request, res: Response) => {
       });
     }
 
-    const updatedUser = await AuthService.updateUserTokens(user.id, tokenData);
+    const updatedUser = await AuthService.updateUserTokens(user._id, tokenData);
     if (!updatedUser) {
       return res.status(500).json({
         success: false,

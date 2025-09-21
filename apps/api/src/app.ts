@@ -3,7 +3,7 @@ import express, { Application } from "express";
 import session from "express-session";
 import cors from "cors";
 import apiRoutes from "./api/v1/routes";
-import { Database } from "@nethercore/database";
+import { Database, DatabaseConfig } from "@nethercore/database";
 import { allowedAccess } from "./middleware/allowedAccess";
 
 // get env variables based on environment
@@ -11,11 +11,16 @@ const envPath =
   process.env.NODE_ENV === "production" ? ".env.prod" : ".env.local";
 dotenv.config({ path: envPath });
 
-// new supabase instance
-const db = new Database(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const dbConfig: DatabaseConfig = {
+  uri: process.env.MONGODB_URI || "mongodb://localhost:27017/nethercore",
+  options: {
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  },
+};
+
+const db = new Database(dbConfig);
 
 (async () => {
   await db.connect();

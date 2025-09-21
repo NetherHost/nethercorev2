@@ -1,6 +1,11 @@
 import axios from "axios";
-import { getDatabase } from "../../../app";
-import { IUser, IUserInput, UserRole } from "@nethercore/database";
+import {
+  IUser,
+  IUserInput,
+  UserRole,
+  User,
+  IUserDocument,
+} from "@nethercore/database";
 
 export interface DiscordUser {
   id: string;
@@ -22,6 +27,21 @@ export interface DiscordTokenResponse {
 export class AuthService {
   private static readonly DISCORD_API_BASE = "https://discord.com/api/v10";
   private static readonly DISCORD_OAUTH_BASE = "https://discord.com/api/oauth2";
+
+  private static mapUserDocument(user: IUserDocument): IUser {
+    return {
+      _id: user._id.toString(),
+      discord_id: user.discord_id,
+      discord_username: user.discord_username,
+      discord_avatar: user.discord_avatar,
+      discord_access_token: user.discord_access_token,
+      discord_refresh_token: user.discord_refresh_token,
+      discord_token_expires_at: user.discord_token_expires_at,
+      role: user.role,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
+    };
+  }
 
   static generateAuthUrl(): string {
     const params = new URLSearchParams({
@@ -109,9 +129,6 @@ export class AuthService {
     tokens: DiscordTokenResponse
   ): Promise<IUser | null> {
     try {
-      const db = getDatabase();
-      const supabase = db.getClient();
-
       const tokenExpiresAt = new Date(
         Date.now() + tokens.expires_in * 1000
       ).toISOString();
@@ -122,40 +139,30 @@ export class AuthService {
             parseInt(discordUser.discriminator) % 5
           }.png`;
 
-      const { data: existingUser, error: fetchError } = await supabase
-        .from("users")
-        .select("*")
-        .eq("discord_id", discordUser.id)
-        .single();
-
-      if (fetchError && fetchError.code !== "PGRST116") {
-        console.error("Error fetching user:", fetchError);
-        return null;
-      }
+      const existingUser = await User.findOne({ discord_id: discordUser.id });
 
       if (existingUser) {
-        const { data: updatedUser, error: updateError } = await supabase
-          .from("users")
-          .update({
+        const updatedUser = await User.findByIdAndUpdate(
+          existingUser._id,
+          {
             discord_username: discordUser.username,
             discord_avatar: avatarUrl,
             discord_access_token: tokens.access_token,
             discord_refresh_token: tokens.refresh_token,
             discord_token_expires_at: tokenExpiresAt,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("discord_id", discordUser.id)
-          .select()
-          .single();
+            updated_at: new Date(),
+          },
+          { new: true, runValidators: true }
+        );
 
-        if (updateError) {
-          console.error("Error updating user:", updateError);
+        if (!updatedUser) {
+          console.error("Error updating user");
           return null;
         }
 
-        return updatedUser;
+        return this.mapUserDocument(updatedUser);
       } else {
-        const newUserInput: IUserInput = {
+        const newUser = new User({
           discord_id: discordUser.id,
           discord_username: discordUser.username,
           discord_avatar: avatarUrl,
@@ -163,20 +170,16 @@ export class AuthService {
           discord_refresh_token: tokens.refresh_token,
           discord_token_expires_at: tokenExpiresAt,
           role: UserRole.USER,
-        };
+        });
 
-        const { data: newUser, error: insertError } = await supabase
-          .from("users")
-          .insert(newUserInput)
-          .select()
-          .single();
+        const savedUser = await newUser.save();
 
-        if (insertError) {
-          console.error("Error creating user:", insertError);
+        if (!savedUser) {
+          console.error("Error creating user");
           return null;
         }
 
-        return newUser;
+        return this.mapUserDocument(savedUser);
       }
     } catch (error) {
       console.error("Error in findOrCreateUser:", error);
@@ -186,21 +189,14 @@ export class AuthService {
 
   static async getUserById(userId: string): Promise<IUser | null> {
     try {
-      const db = getDatabase();
-      const supabase = db.getClient();
+      const user = await User.findById(userId);
 
-      const { data: user, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.error("Error fetching user by ID:", error);
+      if (!user) {
+        console.error("User not found");
         return null;
       }
 
-      return user;
+      return this.mapUserDocument(user);
     } catch (error) {
       console.error("Error in getUserById:", error);
       return null;
@@ -212,31 +208,27 @@ export class AuthService {
     tokens: DiscordTokenResponse
   ): Promise<IUser | null> {
     try {
-      const db = getDatabase();
-      const supabase = db.getClient();
-
       const tokenExpiresAt = new Date(
         Date.now() + tokens.expires_in * 1000
       ).toISOString();
 
-      const { data: updatedUser, error } = await supabase
-        .from("users")
-        .update({
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        {
           discord_access_token: tokens.access_token,
           discord_refresh_token: tokens.refresh_token,
           discord_token_expires_at: tokenExpiresAt,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId)
-        .select()
-        .single();
+          updated_at: new Date(),
+        },
+        { new: true, runValidators: true }
+      );
 
-      if (error) {
-        console.error("Error updating user tokens:", error);
+      if (!updatedUser) {
+        console.error("Error updating user tokens");
         return null;
       }
 
-      return updatedUser;
+      return this.mapUserDocument(updatedUser);
     } catch (error) {
       console.error("Error in updateUserTokens:", error);
       return null;
