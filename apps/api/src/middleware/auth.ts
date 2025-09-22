@@ -119,7 +119,7 @@ export const autoRefreshTokens = async (
       );
       if (tokenData) {
         const updatedUser = await AuthService.updateUserTokens(
-          user.id,
+          user._id,
           tokenData
         );
         if (updatedUser) {
@@ -175,7 +175,7 @@ export const ensureValidTokens = async (
       }
 
       const updatedUser = await AuthService.updateUserTokens(
-        user.id,
+        user._id,
         tokenData
       );
       if (!updatedUser) {
