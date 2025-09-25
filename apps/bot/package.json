@@ -27,10 +27,14 @@
     "@nethercore/logger": "workspace:*",
     "axios": "^1.12.2",
     "commandkit": "1.2.0-rc.9",
+    "cors": "^2.8.5",
     "discord.js": "^14.22.1",
-    "dotenv": "^17.2.2"
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
     "@types/node": "^20.19.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"

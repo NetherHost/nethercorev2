@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AuthService } from "./service";
 import { IUser } from "@nethercore/database";
+import { getAllowedIds } from "../../../utils/getAllowedIds";
 import "../../../types/session.d";
 
 declare global {
@@ -19,6 +20,15 @@ export const initiateAuth = (req: Request, res: Response) => {
 export const handleCallback = async (req: Request, res: Response) => {
   try {
     const { code } = req.query;
+
+    console.log("Discord callback received:", {
+      code: code ? "present" : "missing",
+    });
+    console.log("Environment check:", {
+      clientId: process.env.DISCORD_CLIENT_ID ? "set" : "missing",
+      clientSecret: process.env.DISCORD_CLIENT_SECRET ? "set" : "missing",
+      callbackUrl: process.env.DISCORD_CALLBACK_URL || "missing",
+    });
 
     if (!code || typeof code !== "string") {
       return res.status(400).json({
@@ -43,6 +53,15 @@ export const handleCallback = async (req: Request, res: Response) => {
       });
     }
 
+    const allowedIds = getAllowedIds();
+    if (allowedIds.length > 0 && !allowedIds.includes(discordUser.id)) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Access denied. Your Discord account is not authorized to use this application.",
+      });
+    }
+
     const user = await AuthService.findOrCreateUser(discordUser, tokens);
     if (!user) {
       return res.status(500).json({
@@ -62,11 +81,7 @@ export const handleCallback = async (req: Request, res: Response) => {
       }
 
       const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-      res.redirect(
-        `${frontendUrl}/?auth=success&user=${encodeURIComponent(
-          user.discord_username
-        )}`
-      );
+      res.redirect(`${frontendUrl}/dashboard`);
     });
   } catch (error) {
     console.error("Callback error:", error);
@@ -104,6 +119,13 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       created_at: user.created_at,
       updated_at: user.updated_at,
     };
+
+    console.log("User data being returned:", {
+      id: safeUser.id,
+      username: safeUser.discord_username,
+      created_at: safeUser.created_at,
+      created_at_type: typeof safeUser.created_at,
+    });
 
     res.json({
       success: true,

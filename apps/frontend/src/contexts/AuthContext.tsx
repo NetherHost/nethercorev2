@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { IUser } from "@nethercore/database";
 
 interface AuthContextType {
@@ -29,7 +35,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -41,6 +47,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.user) {
+          console.log("User data received:", {
+            username: data.user.discord_username,
+            created_at: data.user.created_at,
+            created_at_type: typeof data.user.created_at,
+          });
           setUser(data.user);
         } else {
           setUser(null);
@@ -55,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [API_BASE_URL]);
 
   const login = (user: IUser) => {
     setUser(user);

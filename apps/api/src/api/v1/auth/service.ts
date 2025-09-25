@@ -75,8 +75,12 @@ export class AuthService {
       );
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error exchanging code for tokens:", error);
+      if (error.response) {
+        console.error("Discord API response:", error.response.data);
+        console.error("Status:", error.response.status);
+      }
       return null;
     }
   }
@@ -101,7 +105,7 @@ export class AuthService {
       );
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error refreshing tokens:", error);
       return null;
     }
@@ -118,7 +122,7 @@ export class AuthService {
       });
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching Discord user:", error);
       return null;
     }
@@ -181,7 +185,7 @@ export class AuthService {
 
         return this.mapUserDocument(savedUser);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in findOrCreateUser:", error);
       return null;
     }

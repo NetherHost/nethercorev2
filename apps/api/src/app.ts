@@ -2,9 +2,12 @@ import dotenv from "dotenv";
 import express, { Application } from "express";
 import session from "express-session";
 import cors from "cors";
+import { createServer } from "http";
 import apiRoutes from "./api/v1/routes";
 import { Database, DatabaseConfig } from "@nethercore/database";
 import { allowedAccess } from "./middleware/allowedAccess";
+import { webSocketService } from "./services/websocket";
+import { botStatsService } from "./services/botStats";
 
 // get env variables based on environment
 const envPath =
@@ -75,4 +78,33 @@ app.use((req, res) => {
   });
 });
 
+// Create HTTP server
+const server = createServer(app);
+
+// Initialize WebSocket service
+webSocketService.initialize(server);
+
+// Start bot stats collection
+botStatsService.start();
+
+// Graceful shutdown
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received, shutting down gracefully");
+  botStatsService.stop();
+  webSocketService.destroy();
+  server.close(() => {
+    console.log("Process terminated");
+  });
+});
+
+process.on("SIGINT", () => {
+  console.log("SIGINT received, shutting down gracefully");
+  botStatsService.stop();
+  webSocketService.destroy();
+  server.close(() => {
+    console.log("Process terminated");
+  });
+});
+
 export default app;
+export { server };
