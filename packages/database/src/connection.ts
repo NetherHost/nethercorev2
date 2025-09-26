@@ -99,6 +99,8 @@ export class Database {
   async createIndexes(): Promise<void> {
     try {
       await import("./models/User");
+      await import("./models/GiveawaySettings");
+      await import("./models/TicketSettings");
 
       await mongoose.connection.db?.admin().command({ listCollections: 1 });
       this.logger.info("Database indexes created/verified");

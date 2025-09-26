@@ -41,3 +41,28 @@ h6 {
   will-change: transform;
   transform-origin: center;
 }
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dc2626;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ef4444;
+}
+
+/* firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #dc2626 #1a1a1a;
+}
