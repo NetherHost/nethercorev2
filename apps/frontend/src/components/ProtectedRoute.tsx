@@ -3,7 +3,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Spinner from "./Spinner";
+import LoadingScreen from "./LoadingScreen";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -30,19 +30,7 @@ export default function ProtectedRoute({
   }, [user, isLoading, router, redirectTo, requireAuth, hasRedirected]);
 
   if (isLoading) {
-    return (
-      // loading state
-      fallback || (
-        <div className="min-h-screen flex items-center justify-center bg-neutral-950">
-          <div className="flex flex-col items-center gap-4">
-            <Spinner speed="medium" size="lg" />
-            <span className="text-white text-sm font-medium">
-              Verifying access...
-            </span>
-          </div>
-        </div>
-      )
-    );
+    return fallback || <LoadingScreen message="Verifying access..." />;
   }
 
   if (error) {

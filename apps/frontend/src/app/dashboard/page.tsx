@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWebSocket, WebSocketProvider } from "@/contexts/WebSocketContext";
 import Button from "@/components/Button";
+import LoadingScreen from "@/components/LoadingScreen";
 import Spinner from "@/components/Spinner";
 import Navbar from "@/components/Navbar";
 
@@ -49,23 +50,7 @@ function DashboardContent() {
   };
 
   if (isLoading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-dots relative">
-        <section className="bg-neutral-950/80 backdrop-blur-md rounded-xl px-8 py-10 max-w-md w-full text-center border border-neutral-800 shadow-lg">
-          <div className="mb-8 flex flex-col items-center">
-            <h1 className="text-3xl font-semibold mb-5 text-white font-sora tracking-tight">
-              NetherCore
-            </h1>
-            <div className="flex flex-col items-center gap-4">
-              <Spinner speed="medium" size="lg" />
-              <span className="text-white text-sm font-medium">
-                Loading dashboard...
-              </span>
-            </div>
-          </div>
-        </section>
-      </main>
-    );
+    return <LoadingScreen message="Loading dashboard..." />;
   }
 
   if (!user) {
@@ -96,8 +81,8 @@ function DashboardContent() {
     <main className="min-h-screen bg-black relative">
       <Navbar activeTab="dashboard" />
 
-      <div className="flex items-center justify-center h-[calc(100vh-3.5rem)] overflow-hidden">
-        <div className="w-full max-w-4xl px-4 h-full flex flex-col justify-center">
+      <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] py-8">
+        <div className="w-full max-w-4xl px-4 flex flex-col justify-center">
           <section className="bg-black/50 backdrop-blur-md rounded-xl p-6 border border-neutral-800 shadow-lg mb-6">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-white mb-2">

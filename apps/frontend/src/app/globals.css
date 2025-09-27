@@ -43,26 +43,24 @@ h6 {
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a1a;
-  border-radius: 4px;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #dc2626;
-  border-radius: 4px;
-  transition: background 0.2s ease;
+  background: #404040;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #ef4444;
+  background: #525252;
 }
 
 /* firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #dc2626 #1a1a1a;
+  scrollbar-color: #404040 transparent;
 }
