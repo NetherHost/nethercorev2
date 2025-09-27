@@ -1,9 +1,4 @@
-export interface ITicketBan {
-  userId: string;
-  moderatorId: string;
-  reason?: string;
-  bannedAt: Date;
-}
+import { IBannedUser } from "./shared";
 
 export interface IAutoClose {
   enabled: boolean;
@@ -32,7 +27,7 @@ export interface ITicketSettings {
   autoClose: IAutoClose;
   claims: IClaims;
   stats: ITicketStats;
-  ticketBanList?: ITicketBan[];
+  ticketBanList?: IBannedUser[];
   createdAt?: Date;
   updatedAt?: Date;
 }

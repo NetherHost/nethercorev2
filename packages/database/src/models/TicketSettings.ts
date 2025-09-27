@@ -1,13 +1,13 @@
 import mongoose, { Schema, Document } from "mongoose";
 import {
   ITicketSettings,
-  ITicketBan,
   IAutoClose,
   IClaims,
   ITicketStats,
 } from "../types/ticket";
+import { IBannedUser } from "../types/shared";
 
-const TicketBanSchema = new Schema<ITicketBan>({
+const BannedUserSchema = new Schema<IBannedUser>({
   userId: {
     type: String,
     required: true,
@@ -123,7 +123,7 @@ const TicketSettingsSchema = new Schema<ITicketSettings & Document>(
       required: true,
       default: () => ({}),
     },
-    ticketBanList: [TicketBanSchema],
+    ticketBanList: [BannedUserSchema],
   },
   {
     timestamps: true,

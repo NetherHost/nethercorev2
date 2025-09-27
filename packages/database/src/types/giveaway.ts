@@ -1,9 +1,4 @@
-export interface IGiveawayBan {
-  userId: string;
-  moderator: string;
-  reason?: string;
-  bannedAt: Date;
-}
+import { IBannedUser } from "./shared";
 
 export interface IGiveawaySettings {
   _id?: string;
@@ -15,7 +10,7 @@ export interface IGiveawaySettings {
   autoReroll: boolean;
   requiredRoleIds?: string[];
   allowedRoleIds?: string[];
-  bannedUsers?: IGiveawayBan[];
+  bannedUsers?: IBannedUser[];
   createdAt?: Date;
   updatedAt?: Date;
 }

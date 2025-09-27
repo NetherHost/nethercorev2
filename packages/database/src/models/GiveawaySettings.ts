@@ -1,12 +1,13 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { IGiveawaySettings, IBannedUser } from "../types/giveaway";
+import { IGiveawaySettings } from "../types/giveaway";
+import { IBannedUser } from "../types/shared";
 
 const BannedUserSchema = new Schema<IBannedUser>({
   userId: {
     type: String,
     required: true,
   },
-  moderator: {
+  moderatorId: {
     type: String,
     required: true,
   },
