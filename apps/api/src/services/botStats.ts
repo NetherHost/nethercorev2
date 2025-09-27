@@ -1,5 +1,7 @@
 import { webSocketService, BotStats } from "./websocket";
 import { createLogger, LogLevel } from "@nethercore/logger";
+import redis from "../utils/redis";
+import { CacheKeys, CacheTTL } from "../utils/cacheKeys";
 import axios from "axios";
 
 const logger = createLogger({
@@ -55,6 +57,8 @@ export class BotStatsService {
 
   private async collectStats() {
     try {
+      const cacheKey = CacheKeys.botStats();
+
       const response = await axios.get(`${this.botApiUrl}/api/stats`, {
         timeout: 3000,
       });
@@ -84,10 +88,12 @@ export class BotStatsService {
     } catch (error: any) {
       logger.debug("Bot is offline or unreachable:", error.message);
 
-      webSocketService.updateBotStats({
+      const offlineStats = {
         online: false,
         lastHeartbeat: new Date(),
-      });
+      };
+
+      webSocketService.updateBotStats(offlineStats);
     }
   }
 

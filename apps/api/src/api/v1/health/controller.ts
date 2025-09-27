@@ -1,22 +1,45 @@
 import "dotenv/config";
 import { Request, Response } from "express";
 import { isDatabaseConnected } from "../../../app";
+import redis from "../../../utils/redis";
+import { CacheKeys, CacheTTL } from "../../../utils/cacheKeys";
 import {
   DBHealthStatus,
   HealthStatus,
   IHealthResponse,
 } from "../../../types/health";
 
-export const healthController = (
+export const healthController = async (
   req: Request,
   res: Response<IHealthResponse>
-): void => {
-  const dbHealth = isDatabaseConnected();
+): Promise<void> => {
+  try {
+    const cacheKey = CacheKeys.health();
+    const cachedHealth = await redis.get(cacheKey);
 
-  const health: IHealthResponse = {
-    status: HealthStatus.OK,
-    db: dbHealth ? DBHealthStatus.CONNECTED : DBHealthStatus.DISCONNECTED,
-  };
+    if (cachedHealth) {
+      const health = JSON.parse(cachedHealth);
+      res.status(200).json(health);
+      return;
+    }
 
-  res.status(200).json(health);
+    const dbHealth = isDatabaseConnected();
+
+    const health: IHealthResponse = {
+      status: HealthStatus.OK,
+      db: dbHealth ? DBHealthStatus.CONNECTED : DBHealthStatus.DISCONNECTED,
+    };
+
+    await redis.setex(cacheKey, CacheTTL.HEALTH, JSON.stringify(health));
+
+    res.status(200).json(health);
+  } catch (error) {
+    console.error("Health check error:", error);
+    const dbHealth = isDatabaseConnected();
+    const health: IHealthResponse = {
+      status: HealthStatus.OK,
+      db: dbHealth ? DBHealthStatus.CONNECTED : DBHealthStatus.DISCONNECTED,
+    };
+    res.status(200).json(health);
+  }
 };

@@ -1,4 +1,6 @@
 import axios from "axios";
+import redis from "../../../utils/redis";
+import { CacheKeys, CacheTTL } from "../../../utils/cacheKeys";
 import {
   IUser,
   IUserInput,
@@ -115,13 +117,29 @@ export class AuthService {
     accessToken: string
   ): Promise<DiscordUser | null> {
     try {
+      const tokenHash = accessToken.substring(0, 10);
+      const cacheKey = CacheKeys.discordUser(tokenHash);
+
+      const cachedUser = await redis.get(cacheKey);
+      if (cachedUser) {
+        return JSON.parse(cachedUser);
+      }
+
       const response = await axios.get(`${this.DISCORD_API_BASE}/users/@me`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
 
-      return response.data;
+      const userData = response.data;
+
+      await redis.setex(
+        cacheKey,
+        CacheTTL.DISCORD_USER,
+        JSON.stringify(userData)
+      );
+
+      return userData;
     } catch (error: any) {
       console.error("Error fetching Discord user:", error);
       return null;
@@ -164,6 +182,9 @@ export class AuthService {
           return null;
         }
 
+        const cacheKey = CacheKeys.user(updatedUser._id.toString());
+        await redis.del(cacheKey);
+
         return this.mapUserDocument(updatedUser);
       } else {
         const newUser = new User({
@@ -182,6 +203,9 @@ export class AuthService {
           console.error("Error creating user");
           return null;
         }
+
+        const cacheKey = CacheKeys.user(savedUser._id.toString());
+        await redis.del(cacheKey);
 
         return this.mapUserDocument(savedUser);
       }
@@ -231,6 +255,9 @@ export class AuthService {
         console.error("Error updating user tokens");
         return null;
       }
+
+      const cacheKey = CacheKeys.user(updatedUser._id.toString());
+      await redis.del(cacheKey);
 
       return this.mapUserDocument(updatedUser);
     } catch (error) {

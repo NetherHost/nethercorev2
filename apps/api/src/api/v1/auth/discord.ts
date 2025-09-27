@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { AuthService } from "./service";
 import { IUser } from "@nethercore/database";
 import { getAllowedIds } from "../../../utils/getAllowedIds";
+import redis from "../../../utils/redis";
+import { CacheKeys, CacheTTL } from "../../../utils/cacheKeys";
 import "../../../types/session.d";
 
 declare global {
@@ -70,6 +72,9 @@ export const handleCallback = async (req: Request, res: Response) => {
       });
     }
 
+    const cacheKey = CacheKeys.user(user._id);
+    await redis.del(cacheKey);
+
     req.session.userId = user._id;
     req.session.save((err) => {
       if (err) {
@@ -101,6 +106,22 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       });
     }
 
+    const cacheKey = CacheKeys.user(req.session.userId);
+    const cachedUser = await redis.get(cacheKey);
+
+    if (cachedUser) {
+      const user = JSON.parse(cachedUser);
+      console.log("User data returned from cache:", {
+        id: user.id,
+        username: user.discord_username,
+      });
+
+      return res.json({
+        success: true,
+        user: user,
+      });
+    }
+
     const user = await AuthService.getUserById(req.session.userId);
     if (!user) {
       req.session.destroy(() => {});
@@ -119,6 +140,8 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       created_at: user.created_at,
       updated_at: user.updated_at,
     };
+
+    await redis.setex(cacheKey, CacheTTL.USER, JSON.stringify(safeUser));
 
     console.log("User data being returned:", {
       id: safeUser.id,
@@ -155,7 +178,12 @@ export const checkAuthStatus = (req: Request, res: Response) => {
   });
 };
 
-export const logout = (req: Request, res: Response) => {
+export const logout = async (req: Request, res: Response) => {
+  if (req.session.userId) {
+    const cacheKey = CacheKeys.user(req.session.userId);
+    await redis.del(cacheKey);
+  }
+
   req.session.destroy((err) => {
     if (err) {
       console.error("Session destroy error:", err);
@@ -271,6 +299,9 @@ export const refreshTokens = async (req: Request, res: Response) => {
         message: "Failed to update tokens in database",
       });
     }
+
+    const cacheKey = CacheKeys.user(user._id);
+    await redis.del(cacheKey);
 
     req.user = updatedUser;
 
