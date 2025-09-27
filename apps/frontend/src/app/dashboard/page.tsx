@@ -152,7 +152,7 @@ function DashboardContent() {
             </div>
 
             {connectionError && (
-              <div className="mb-4 p-3 bg-green-500/10 border border-neutral-800 rounded-lg">
+              <div className="mb-4 p-3 bg-red-500/10 border border-neutral-800 rounded-lg">
                 <p className="text-white text-sm">
                   <i className="fas fa-exclamation-triangle mr-2" />
                   WebSocket connection error: {connectionError}
