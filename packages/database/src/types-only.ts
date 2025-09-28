@@ -1,13 +1,6 @@
-export { Database, DatabaseConfig } from "./connection";
+// Types-only exports for frontend use
+// This file only exports TypeScript interfaces and types, no Mongoose models
 
-// mongoose schemas
-export * from "./models/AISettings";
-export * from "./models/GiveawaySettings";
-export * from "./models/ModerationSettings";
-export * from "./models/TicketSettings";
-export * from "./models/User";
-
-// types
 export * from "./types/ai";
 export * from "./types/components";
 export * from "./types/discord_user";

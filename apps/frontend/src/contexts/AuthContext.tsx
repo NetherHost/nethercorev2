@@ -7,7 +7,7 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { IUser } from "@nethercore/database";
+import { IUser } from "@nethercore/database/types-only";
 
 interface AuthContextType {
   user: IUser | null;
