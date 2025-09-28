@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { IStaff, IStaffMember } from "../types/staff";
 
 const StaffMemberSchema = new Schema<IStaffMember>(
@@ -15,24 +15,25 @@ const StaffMemberSchema = new Schema<IStaffMember>(
 
 const StaffSchema = new Schema<IStaff>(
   {
-    guildId: { type: String, required: true, unique: true },
-    staffMembers: {
+    _id: {
+      type: String,
+      default: "staff-settings",
+    },
+    members: {
       type: [StaffMemberSchema],
       required: true,
       default: [],
     },
-    collectTicketMessages: { type: Boolean, required: true, default: true },
-    collectTicketCloses: { type: Boolean, required: true, default: true },
-    staffChannelId: { type: String, required: false },
-    createdAt: {
-      type: Date,
-      required: false,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      required: false,
-      default: Date.now,
+    roles: [
+      {
+        type: String,
+        required: false,
+      },
+    ],
+    permissions: {
+      type: Schema.Types.Mixed,
+      required: true,
+      default: {},
     },
   },
   {
@@ -40,4 +41,4 @@ const StaffSchema = new Schema<IStaff>(
   }
 );
 
-export default mongoose.model<IStaff>("Staff", StaffSchema);
+export const Staff = mongoose.model<IStaff>("Staff", StaffSchema);

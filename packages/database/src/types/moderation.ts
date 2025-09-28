@@ -14,3 +14,16 @@ export interface IModerationAction {
   reason?: string;
   actionAt: Date;
 }
+
+export interface IModerationSettings {
+  _id?: string;
+  enabled: boolean;
+  autoModeration: boolean;
+  logChannelId?: string;
+  muteRoleId?: string;
+  warnThreshold: number;
+  banThreshold: number;
+  actions: IModerationAction[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}

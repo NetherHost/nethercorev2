@@ -8,6 +8,7 @@ import { Database, DatabaseConfig } from "@nethercore/database";
 import { allowedAccess } from "./middleware/allowedAccess";
 import { webSocketService } from "./services/websocket";
 import { botStatsService } from "./services/botStats";
+import { databaseInitService } from "./services/databaseInit";
 
 // get env variables based on environment
 const envPath =
@@ -25,8 +26,18 @@ const dbConfig: DatabaseConfig = {
 
 const db = new Database(dbConfig);
 
+// Initialize database connection and default documents
 (async () => {
-  await db.connect();
+  try {
+    await db.connect();
+
+    // Initialize default database documents after connection is established
+    await databaseInitService.initializeDefaultDocuments();
+    console.log("✅ Database initialization completed successfully");
+  } catch (error) {
+    console.error("❌ Failed to initialize database:", error);
+    process.exit(1);
+  }
 })();
 
 export const isDatabaseConnected = () => {
@@ -78,16 +89,12 @@ app.use((req, res) => {
   });
 });
 
-// Create HTTP server
 const server = createServer(app);
 
-// Initialize WebSocket service
 webSocketService.initialize(server);
 
-// Start bot stats collection
 botStatsService.start();
 
-// Graceful shutdown
 process.on("SIGTERM", () => {
   console.log("SIGTERM received, shutting down gracefully");
   botStatsService.stop();

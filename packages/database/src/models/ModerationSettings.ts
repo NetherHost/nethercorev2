@@ -1,5 +1,9 @@
-import mongoose, { Schema, Document } from "mongoose";
-import { ModerationAction, IModerationAction } from "../types/moderation";
+import mongoose, { Schema } from "mongoose";
+import {
+  ModerationAction,
+  IModerationAction,
+  IModerationSettings,
+} from "../types/moderation";
 
 const ModerationActionSchema = new Schema<IModerationAction>(
   {
@@ -16,24 +20,50 @@ const ModerationActionSchema = new Schema<IModerationAction>(
   { _id: false }
 );
 
-const ModerationSettingsSchema = new Schema<IModerationAction>(
+const ModerationSettingsSchema = new Schema<IModerationSettings>(
   {
-    userId: { type: String, required: true },
-    moderator: { type: String, required: true },
-    action: {
+    _id: {
       type: String,
-      required: true,
-      enum: Object.values(ModerationAction),
+      default: "moderation-settings",
     },
-    reason: { type: String, required: false },
-    actionAt: { type: Date, required: true },
+    enabled: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    autoModeration: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    logChannelId: {
+      type: String,
+      required: false,
+      default: "",
+    },
+    muteRoleId: {
+      type: String,
+      required: false,
+      default: "",
+    },
+    warnThreshold: {
+      type: Number,
+      required: true,
+      default: 3,
+    },
+    banThreshold: {
+      type: Number,
+      required: true,
+      default: 5,
+    },
+    actions: [ModerationActionSchema],
   },
   {
     timestamps: true,
   }
 );
 
-export default mongoose.model<IModerationAction>(
+export const ModerationSettings = mongoose.model<IModerationSettings>(
   "ModerationSettings",
   ModerationSettingsSchema
 );

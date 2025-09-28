@@ -53,9 +53,12 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const connect = useCallback(() => {
     if (socket || isInitialized) return;
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const API_URL =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
 
-    const newSocket = io(API_URL, {
+    const baseUrl = API_URL.replace("/api/v1", "");
+
+    const newSocket = io(baseUrl, {
       transports: ["websocket", "polling"],
       autoConnect: true,
     });

@@ -9,11 +9,9 @@ export interface IStaffMember {
 
 export interface IStaff {
   _id?: string;
-  guildId: string;
-  staffMembers: IStaffMember[];
-  collectTicketMessages: boolean;
-  collectTicketCloses: boolean;
-  staffChannelId?: string;
+  members: IStaffMember[];
+  roles: string[];
+  permissions: Record<string, boolean>;
   createdAt?: Date;
   updatedAt?: Date;
 }

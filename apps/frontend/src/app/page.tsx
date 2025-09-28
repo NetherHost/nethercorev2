@@ -11,7 +11,7 @@ export default function Home() {
   const handleLogin = () => {
     const API_BASE_URL =
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    window.location.href = `${API_BASE_URL}/api/v1/auth/discord`;
+    window.location.href = `${API_BASE_URL}/auth/discord`;
   };
 
   const handleDashboard = () => {

@@ -26,4 +26,7 @@ const DiscordUserSchema = new Schema<IDiscordUser>(
   }
 );
 
-export default mongoose.model<IDiscordUser>("DiscordUser", DiscordUserSchema);
+export const DiscordUser = mongoose.model<IDiscordUser>(
+  "DiscordUser",
+  DiscordUserSchema
+);

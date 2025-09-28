@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { botStatsService } from "../../../services/botStats";
+import aiRoutes from "./ai/routes";
 
 const router: Router = Router();
 
@@ -28,5 +29,7 @@ router.post("/stats", (req, res) => {
     });
   }
 });
+
+router.use("/ai", aiRoutes);
 
 export default router;

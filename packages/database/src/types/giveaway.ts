@@ -2,15 +2,13 @@ import { IBannedUser } from "./shared";
 
 export interface IGiveawaySettings {
   _id?: string;
-  guildId: string;
-  totalGiveaways: number;
-  access: "ENABLED" | "DISABLED";
+  enabled: boolean;
+  logChannelId?: string;
   defaultDuration: number; //ms
-  defaultWinnerCount: number;
-  autoReroll: boolean;
+  maxWinners: number;
   requiredRoleIds?: string[];
-  allowedRoleIds?: string[];
-  bannedUsers?: IBannedUser[];
+  bannedUserIds?: string[];
+  totalGiveaways: number;
   createdAt?: Date;
   updatedAt?: Date;
 }

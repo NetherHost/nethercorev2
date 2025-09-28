@@ -1,52 +1,132 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "../Button";
 import Input from "../ui/Input";
 import Select from "../ui/Select";
 import Textarea from "../ui/Textarea";
 import Toggle from "../ui/Toggle";
 import TagInput from "../ui/TagInput";
+import { IAIConfig } from "@nethercore/database/types-only";
+import { apiClient } from "../../utils/api";
 
 interface AISettingsProps {
-  config?: {
-    enabled: boolean;
-    provider: string;
-    apiKey: string;
-    model: string;
-    maxTokens: number;
-    temperature: number;
-    topP?: number;
-    presencePenalty?: number;
-    frequencyPenalty?: number;
-    systemPrompt?: string;
-    maxResponseLength?: number;
-    allowedChannelIds: string[];
-    allowedRoleIds: string[];
-  };
-  onSave?: (config: any) => void;
+  onSave?: (config: IAIConfig) => void;
 }
 
-export default function AISettings({ config, onSave }: AISettingsProps) {
-  const [settings, setSettings] = useState({
-    enabled: config?.enabled ?? false,
-    provider: config?.provider ?? "openai",
-    apiKey: config?.apiKey ?? "",
-    model: config?.model ?? "gpt-5-mini",
-    maxTokens: config?.maxTokens ?? 1000,
-    temperature: config?.temperature ?? 0.7,
-    topP: config?.topP ?? 1,
-    presencePenalty: config?.presencePenalty ?? 0,
-    frequencyPenalty: config?.frequencyPenalty ?? 0,
-    systemPrompt: config?.systemPrompt ?? "",
-    maxResponseLength: config?.maxResponseLength ?? 2000,
-    allowedChannelIds: config?.allowedChannelIds ?? [],
-    allowedRoleIds: config?.allowedRoleIds ?? [],
+export default function AISettings({ onSave }: AISettingsProps) {
+  const [settings, setSettings] = useState<Partial<IAIConfig>>({
+    enabled: false,
+    provider: "openai" as any,
+    apiKey: "",
+    model: "gpt-5-mini" as any,
+    maxTokens: 1000,
+    temperature: 0.7,
+    topP: 1,
+    presencePenalty: 0,
+    frequencyPenalty: 0,
+    systemPrompt: "",
+    maxResponseLength: 2000,
+    allowedChannelIds: [],
+    allowedRoleIds: [],
   });
 
-  const handleSave = () => {
-    onSave?.(settings);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchAISettings();
+  }, []);
+
+  const fetchAISettings = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await apiClient.get<IAIConfig>(`/bot/ai`);
+
+      if (response.success && response.data) {
+        setSettings(response.data);
+      } else {
+        setSettings({
+          enabled: false,
+          provider: "openai" as any,
+          apiKey: "",
+          model: "gpt-5-mini" as any,
+          maxTokens: 1000,
+          temperature: 0.7,
+          topP: 1,
+          presencePenalty: 0,
+          frequencyPenalty: 0,
+          systemPrompt: "",
+          maxResponseLength: 2000,
+          allowedChannelIds: [],
+          allowedRoleIds: [],
+        });
+      }
+    } catch (err: any) {
+      if (err.message?.includes("404")) {
+        setSettings({
+          enabled: false,
+          provider: "openai" as any,
+          apiKey: "",
+          model: "gpt-5-mini" as any,
+          maxTokens: 1000,
+          temperature: 0.7,
+          topP: 1,
+          presencePenalty: 0,
+          frequencyPenalty: 0,
+          systemPrompt: "",
+          maxResponseLength: 2000,
+          allowedChannelIds: [],
+          allowedRoleIds: [],
+        });
+      } else {
+        setError(err.message || "Failed to fetch AI settings");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = settings._id
+        ? await apiClient.put<IAIConfig>(`/bot/ai`, settings)
+        : await apiClient.post<IAIConfig>(`/bot/ai`, settings);
+
+      if (response.success && response.data) {
+        setSuccess("AI settings saved successfully");
+        setSettings(response.data);
+        onSave?.(response.data);
+      } else {
+        setError(response.message || "Failed to save AI settings");
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to save AI settings");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-black/50 backdrop-blur-md rounded-xl p-6 border border-neutral-800 shadow-lg">
+        <div className="flex items-center justify-center py-8">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-500"></div>
+            <span className="text-white">Loading AI settings...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-black/50 backdrop-blur-md rounded-xl p-6 border border-neutral-800 shadow-lg">
@@ -57,11 +137,29 @@ export default function AISettings({ config, onSave }: AISettingsProps) {
         <h2 className="text-xl font-semibold text-white">AI Settings</h2>
       </div>
 
+      {error && (
+        <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <i className="fas fa-exclamation-circle text-red-400"></i>
+            <span className="text-red-400 text-sm">{error}</span>
+          </div>
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <i className="fas fa-check-circle text-green-400"></i>
+            <span className="text-green-400 text-sm">{success}</span>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-6">
         <Toggle
           label="Enable AI"
           description="Enable AI functionality"
-          checked={settings.enabled}
+          checked={settings.enabled || false}
           onChange={(checked) =>
             setSettings((prev) => ({ ...prev, enabled: checked }))
           }
@@ -70,9 +168,12 @@ export default function AISettings({ config, onSave }: AISettingsProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select
             label="Provider"
-            value={settings.provider}
+            value={settings.provider || "openai"}
             onChange={(e) =>
-              setSettings((prev) => ({ ...prev, provider: e.target.value }))
+              setSettings((prev) => ({
+                ...prev,
+                provider: e.target.value as any,
+              }))
             }
             options={[{ value: "openai", label: "OpenAI" }]}
             icon={<i className="fas fa-server"></i>}
@@ -80,9 +181,9 @@ export default function AISettings({ config, onSave }: AISettingsProps) {
 
           <Select
             label="Model"
-            value={settings.model}
+            value={settings.model || "gpt-5-mini"}
             onChange={(e) =>
-              setSettings((prev) => ({ ...prev, model: e.target.value }))
+              setSettings((prev) => ({ ...prev, model: e.target.value as any }))
             }
             options={[
               { value: "gpt-5", label: "GPT-5" },
@@ -176,7 +277,7 @@ export default function AISettings({ config, onSave }: AISettingsProps) {
         <TagInput
           label="Allowed Channel IDs"
           description="Channels where AI can respond"
-          tags={settings.allowedChannelIds}
+          tags={settings.allowedChannelIds || []}
           onTagsChange={(tags) =>
             setSettings((prev) => ({ ...prev, allowedChannelIds: tags }))
           }
@@ -186,7 +287,7 @@ export default function AISettings({ config, onSave }: AISettingsProps) {
         <TagInput
           label="Allowed Role IDs"
           description="Roles that can use AI features"
-          tags={settings.allowedRoleIds}
+          tags={settings.allowedRoleIds || []}
           onTagsChange={(tags) =>
             setSettings((prev) => ({ ...prev, allowedRoleIds: tags }))
           }
@@ -194,9 +295,18 @@ export default function AISettings({ config, onSave }: AISettingsProps) {
         />
 
         <div className="flex justify-end">
-          <Button onClick={handleSave} variant="primary">
-            <i className="fas fa-save"></i>
-            Save AI Settings
+          <Button onClick={handleSave} variant="primary" disabled={saving}>
+            {saving ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Saving...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-save"></i>
+                Save AI Settings
+              </>
+            )}
           </Button>
         </div>
       </div>

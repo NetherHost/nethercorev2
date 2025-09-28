@@ -4,6 +4,7 @@ export { Database, DatabaseConfig } from "./connection";
 export * from "./models/AISettings";
 export * from "./models/GiveawaySettings";
 export * from "./models/ModerationSettings";
+export * from "./models/Staff";
 export * from "./models/TicketSettings";
 export * from "./models/User";
 

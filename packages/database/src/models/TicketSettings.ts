@@ -1,138 +1,52 @@
-import mongoose, { Schema, Document } from "mongoose";
-import {
-  ITicketSettings,
-  IAutoClose,
-  IClaims,
-  ITicketStats,
-} from "../types/ticket";
-import { IBannedUser } from "../types/shared";
+import mongoose, { Schema } from "mongoose";
+import { ITicketSettings } from "../types/ticket";
 
-const BannedUserSchema = new Schema<IBannedUser>({
-  userId: {
-    type: String,
-    required: true,
-  },
-  moderatorId: {
-    type: String,
-    required: true,
-  },
-  reason: {
-    type: String,
-    required: false,
-  },
-  bannedAt: {
-    type: Date,
-    required: true,
-    default: Date.now,
-  },
-});
-
-const AutoCloseSchema = new Schema<IAutoClose>({
-  enabled: {
-    type: Boolean,
-    required: true,
-    default: false,
-  },
-  interval: {
-    type: Number,
-    required: false,
-    min: 60000, // minimum 1min
-  },
-});
-
-const ClaimsSchema = new Schema<IClaims>({
-  enabled: {
-    type: Boolean,
-    required: true,
-    default: true,
-  },
-  autoClaimOnMessage: {
-    type: Boolean,
-    required: true,
-    default: false,
-  },
-  onlyOneClaimer: {
-    type: Boolean,
-    required: true,
-    default: true,
-  },
-});
-
-const TicketStatsSchema = new Schema<ITicketStats>({
-  totalTicketsResolved: {
-    type: Number,
-    required: true,
-    default: 0,
-    min: 0,
-  },
-  averageResponseTime: {
-    type: Number,
-    required: true,
-    default: 0,
-    min: 0,
-  },
-  responseTimeLastUpdated: {
-    type: Date,
-    required: false,
-  },
-  totalTicketsWithResponse: {
-    type: Number,
-    required: true,
-    default: 0,
-    min: 0,
-  },
-});
-
-const TicketSettingsSchema = new Schema<ITicketSettings & Document>(
+const TicketSettingsSchema = new Schema<ITicketSettings>(
   {
-    guildId: {
+    _id: {
       type: String,
-      required: true,
-      unique: true,
-      index: true,
+      default: "ticket-settings",
     },
-    access: {
+    enabled: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    categoryId: {
       type: String,
-      required: true,
-      enum: ["EVERYONE", "CLIENTS_ONLY", "CLOSED"],
-      default: "EVERYONE",
+      required: false,
+      default: "",
     },
-    ticketLimit: {
-      type: Number,
-      required: true,
-      default: 3,
-      min: 1,
+    logChannelId: {
+      type: String,
+      required: false,
+      default: "",
     },
+    supportRoleIds: [
+      {
+        type: String,
+        required: false,
+      },
+    ],
+    bannedUserIds: [
+      {
+        type: String,
+        required: false,
+      },
+    ],
     totalTickets: {
       type: Number,
-      required: false,
+      required: true,
+      default: 0,
       min: 0,
     },
-    autoClose: {
-      type: AutoCloseSchema,
-      required: true,
-      default: () => ({}),
-    },
-    claims: {
-      type: ClaimsSchema,
-      required: true,
-      default: () => ({}),
-    },
-    stats: {
-      type: TicketStatsSchema,
-      required: true,
-      default: () => ({}),
-    },
-    ticketBanList: [BannedUserSchema],
   },
   {
     timestamps: true,
   }
 );
 
-TicketSettingsSchema.index({ guildId: 1 });
-
-export const TicketSettings = mongoose.model<ITicketSettings & Document>(
+export const TicketSettings = mongoose.model<ITicketSettings>(
   "TicketSettings",
   TicketSettingsSchema
 );

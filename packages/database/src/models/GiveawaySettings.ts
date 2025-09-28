@@ -1,63 +1,33 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { IGiveawaySettings } from "../types/giveaway";
-import { IBannedUser } from "../types/shared";
 
-const BannedUserSchema = new Schema<IBannedUser>({
-  userId: {
-    type: String,
-    required: true,
-  },
-  moderatorId: {
-    type: String,
-    required: true,
-  },
-  reason: {
-    type: String,
-    required: false,
-  },
-  bannedAt: {
-    type: Date,
-    required: true,
-    default: Date.now,
-  },
-});
-
-const GiveawaySettingsSchema = new Schema<IGiveawaySettings & Document>(
+const GiveawaySettingsSchema = new Schema<IGiveawaySettings>(
   {
-    guildId: {
+    _id: {
       type: String,
-      required: true,
-      unique: true,
-      index: true,
+      default: "giveaway-settings",
     },
-    totalGiveaways: {
-      type: Number,
+    enabled: {
+      type: Boolean,
       required: true,
-      default: 0,
-      min: 0,
+      default: false,
     },
-    access: {
+    logChannelId: {
       type: String,
-      required: true,
-      enum: ["ENABLED", "DISABLED"],
-      default: "ENABLED",
+      required: false,
+      default: "",
     },
     defaultDuration: {
       type: Number,
       required: true,
-      default: 86400000, // 24h in ms
+      default: 7 * 24 * 60 * 60 * 1000, // 7 days
       min: 60000, // minimum 1min
     },
-    defaultWinnerCount: {
+    maxWinners: {
       type: Number,
       required: true,
       default: 1,
       min: 1,
-    },
-    autoReroll: {
-      type: Boolean,
-      required: true,
-      default: false,
     },
     requiredRoleIds: [
       {
@@ -65,22 +35,25 @@ const GiveawaySettingsSchema = new Schema<IGiveawaySettings & Document>(
         required: false,
       },
     ],
-    allowedRoleIds: [
+    bannedUserIds: [
       {
         type: String,
         required: false,
       },
     ],
-    bannedUsers: [BannedUserSchema],
+    totalGiveaways: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-GiveawaySettingsSchema.index({ guildId: 1 });
-
-export const GiveawaySettings = mongoose.model<IGiveawaySettings & Document>(
+export const GiveawaySettings = mongoose.model<IGiveawaySettings>(
   "GiveawaySettings",
   GiveawaySettingsSchema
 );

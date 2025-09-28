@@ -30,6 +30,10 @@ const AIBanSchema = new Schema<IAIBan>(
 
 const AISettingsSchema = new Schema<IAIConfig>(
   {
+    _id: {
+      type: String,
+      default: "ai-settings",
+    },
     enabled: {
       type: Boolean,
       required: true,
@@ -42,7 +46,7 @@ const AISettingsSchema = new Schema<IAIConfig>(
     },
     apiKey: {
       type: String,
-      required: true,
+      required: false,
     },
     model: {
       type: String,
@@ -120,4 +124,7 @@ const AISettingsSchema = new Schema<IAIConfig>(
   }
 );
 
-export default mongoose.model<IAIConfig>("AISettings", AISettingsSchema);
+export const AISettings = mongoose.model<IAIConfig>(
+  "AISettings",
+  AISettingsSchema
+);

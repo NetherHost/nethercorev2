@@ -20,14 +20,12 @@ export interface ITicketStats {
 
 export interface ITicketSettings {
   _id?: string;
-  guildId: string;
-  access: "EVERYONE" | "CLIENTS_ONLY" | "CLOSED";
-  ticketLimit: number;
+  enabled: boolean;
+  categoryId?: string;
+  logChannelId?: string;
+  supportRoleIds?: string[];
+  bannedUserIds?: string[];
   totalTickets?: number;
-  autoClose: IAutoClose;
-  claims: IClaims;
-  stats: ITicketStats;
-  ticketBanList?: IBannedUser[];
   createdAt?: Date;
   updatedAt?: Date;
 }
